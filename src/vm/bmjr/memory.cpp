@@ -151,7 +151,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			// bit4: timer irq mask
 			memory_bank = data;
 			update_bank();
-			irq_enb = !!(data & 0x10);
+			irq_enb = !(data & 0x10);
 			update_irq_line();
 			break;
 		case 0xefe0:
