@@ -1743,7 +1743,7 @@ void MC6800::tap()
 /* $07 TPA inherent ----- */
 void MC6800::tpa()
 {
-	A=CC;
+    A = CC|0xC0;
 }
 
 /* $08 INX inherent --*-- */
