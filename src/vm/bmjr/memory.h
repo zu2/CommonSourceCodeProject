@@ -37,6 +37,10 @@ private:
 	
 	uint8_t memory_bank;
 	void update_bank();
+	bool irq_enb;
+	bool timer_irq_req;
+	void update_irq_line();
+	void update_key_data();
 	
 	uint8_t color_table[0x300];
 	uint8_t char_color, back_color, mp1710_enb;

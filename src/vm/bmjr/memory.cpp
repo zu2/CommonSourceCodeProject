@@ -103,6 +103,10 @@ void MEMORY::reset()
 	touch_sound();
 	memory_bank = 0;
 	update_bank();
+
+	irq_enb = true;
+	timer_irq_req = false;
+	update_irq_line();
 	
 	memset(color_table, 7, sizeof(color_table));
 	char_color = 7;
@@ -141,12 +145,14 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		case 0xeec0:
 			key_column = data & 0x0f;
 			nmi_enb = ((data & 0x80) != 0);
-			event_frame(); // update keyboard
+			update_key_data(); // update keyboard
 			break;
 		case 0xefd0:
-			// bit4: unknown (timer on/off)
+			// bit4: timer irq mask
 			memory_bank = data;
 			update_bank();
+			irq_enb = !!(data & 0x10);
+			update_irq_line();
 			break;
 		case 0xefe0:
 			screen_mode = data;
@@ -196,9 +202,13 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			return drec_bit ? 0x80 : 0;
 		case 0xeec0:
 			return key_data;
-		case 0xef00:
-			// unknown (timer)
-			break;
+		case 0xef00: {
+			// bit7: irq reason: timer
+			uint32_t ret = 0x7f | (timer_irq_req ? 0x80:0x00);
+			timer_irq_req = false;
+			update_irq_line();
+			return ret;
+		}
 		case 0xef80:
 			if(break_pressed) {
 				break_pressed = false;
@@ -252,6 +262,14 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 
 void MEMORY::event_frame()
 {
+	timer_irq_req = true;
+	update_irq_line();
+
+	update_key_data();
+}
+
+void MEMORY::update_key_data()
+{
 	key_data = 0xff;
 	if(key_column < 13) {
 		if(key_stat[key_table[key_column][0]]) key_data &= ~0x01;
@@ -273,6 +291,12 @@ void MEMORY::event_frame()
 	if(key_stat[0xa3]) key_data &= ~0x80; // ƒJƒi     -> R-CTRL
 #endif
 }
+
+void MEMORY::update_irq_line()
+{
+    d_cpu->write_signal(SIG_CPU_IRQ, (timer_irq_req && irq_enb) ? 1 : 0, 1);
+}
+
 
 void MEMORY::key_down(int code)
 {
