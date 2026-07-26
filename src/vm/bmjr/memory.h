@@ -46,6 +46,7 @@ private:
 	uint8_t char_color, back_color, mp1710_enb;
 	uint8_t screen_mode;
 	bool screen_reversed;
+	bool text_or_graphics;
 	scrntype_t palette_pc[8];
 	
 	bool drec_bit, drec_in;

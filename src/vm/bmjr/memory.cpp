@@ -116,6 +116,7 @@ void MEMORY::reset()
 	screen_reversed = false;
 	
 	drec_bit = drec_in = false;
+	text_or_graphics = false;
 	
 	key_column = 0;
 	nmi_enb = break_pressed = false;
@@ -151,7 +152,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			// bit4: timer irq mask
 			memory_bank = data;
 			update_bank();
-			irq_enb = !!(data & 0x10);
+			irq_enb = !(data & 0x10);
 			update_irq_line();
 			break;
 		case 0xefe0:
@@ -356,7 +357,38 @@ void MEMORY::set_volume(int ch, int decibel_l, int decibel_r)
 
 void MEMORY::draw_screen()
 {
-	if(!(screen_mode & 0x80)) {
+	bool show_text, show_graph;
+
+	switch(screen_mode & 0xc0) {
+	case 0x00:	// text only
+		show_text = true;
+		show_graph = false;
+		break;
+	case 0x40:	// text and graphics, superimposed
+		text_or_graphics = !text_or_graphics;
+		show_text = text_or_graphics;	// toggles every vsync (60Hz)
+		show_graph = !text_or_graphics;
+//		show_text = true;
+//		show_graph = true;
+		break;
+	case 0xc0:	// graphics only
+		show_text = false;
+		show_graph = true;
+		break;
+	default:	// 0x80: no visible output
+		show_text = false;
+		show_graph = false;
+		break;
+	}
+
+	scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
+	for(int y = 0; y < SCREEN_HEIGHT; y++) {
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		for(int x = 0; x < SCREEN_WIDTH; x++) {
+			dest[x] = back;
+		}
+	}
+	if(show_text) {
 		// text
 		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
 		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
@@ -376,19 +408,20 @@ void MEMORY::draw_screen()
 				for(int l = 0; l < 8; l++) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8_t pat = font[code + l];
-					dest[0] = (pat & 0x80) ? fore : back;
-					dest[1] = (pat & 0x40) ? fore : back;
-					dest[2] = (pat & 0x20) ? fore : back;
-					dest[3] = (pat & 0x10) ? fore : back;
-					dest[4] = (pat & 0x08) ? fore : back;
-					dest[5] = (pat & 0x04) ? fore : back;
-					dest[6] = (pat & 0x02) ? fore : back;
-					dest[7] = (pat & 0x01) ? fore : back;
+					dest[0] |= (pat & 0x80) ? fore : back;
+					dest[1] |= (pat & 0x40) ? fore : back;
+					dest[2] |= (pat & 0x20) ? fore : back;
+					dest[3] |= (pat & 0x10) ? fore : back;
+					dest[4] |= (pat & 0x08) ? fore : back;
+					dest[5] |= (pat & 0x04) ? fore : back;
+					dest[6] |= (pat & 0x02) ? fore : back;
+					dest[7] |= (pat & 0x01) ? fore : back;
 				}
 				taddr++;
 			}
 		}
-	} else {
+	}
+	if(show_graph) {
 		// graph
 		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
 		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
@@ -408,20 +441,21 @@ void MEMORY::draw_screen()
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8_t pat = ram[gaddr + ll];
-					dest[0] = (pat & 0x80) ? fore : back;
-					dest[1] = (pat & 0x40) ? fore : back;
-					dest[2] = (pat & 0x20) ? fore : back;
-					dest[3] = (pat & 0x10) ? fore : back;
-					dest[4] = (pat & 0x08) ? fore : back;
-					dest[5] = (pat & 0x04) ? fore : back;
-					dest[6] = (pat & 0x02) ? fore : back;
-					dest[7] = (pat & 0x01) ? fore : back;
+					dest[0] |= (pat & 0x80) ? fore : back;
+					dest[1] |= (pat & 0x40) ? fore : back;
+					dest[2] |= (pat & 0x20) ? fore : back;
+					dest[3] |= (pat & 0x10) ? fore : back;
+					dest[4] |= (pat & 0x08) ? fore : back;
+					dest[5] |= (pat & 0x04) ? fore : back;
+					dest[6] |= (pat & 0x02) ? fore : back;
+					dest[7] |= (pat & 0x01) ? fore : back;
 				}
 				taddr++;
 				gaddr++;
 			}
 			gaddr += 32 * 7;
 		}
+	} else { // $80: no visible output
 	}
 //	emu->screen_skip_line(false);
 }
