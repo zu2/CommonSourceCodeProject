@@ -93,6 +93,16 @@ void MEMORY::initialize()
 	for(int i = 0; i < 8; i++) {
 		palette_pc[i] = RGB_COLOR((i & 2) ? 0xff : 0, (i & 4) ? 0xff : 0, (i & 1) ? 0xff : 0);
 	}
+	for(int t = 0; t < 8; t++) {
+		for(int g = 0; g < 8; g++) {
+			int both = t & g;
+			int any  = t | g;
+			superimpose_color[t][g] = RGB_COLOR(
+				(both & 2) ? 0xff : (any & 2) ? 0xc0 : 0,	// R
+				(both & 4) ? 0xff : (any & 4) ? 0xc0 : 0,	// G
+				(both & 1) ? 0xff : (any & 1) ? 0xc0 : 0);	// B
+		}
+	}
 	
 	// register event
 	register_frame_event(this);
@@ -116,7 +126,6 @@ void MEMORY::reset()
 	screen_reversed = false;
 	
 	drec_bit = drec_in = false;
-	text_or_graphics = false;
 	
 	key_column = 0;
 	nmi_enb = break_pressed = false;
@@ -357,47 +366,15 @@ void MEMORY::set_volume(int ch, int decibel_l, int decibel_r)
 
 void MEMORY::draw_screen()
 {
-	bool show_text, show_graph;
-
-	switch(screen_mode & 0xc0) {
-	case 0x00:	// text only
-		show_text = true;
-		show_graph = false;
-		break;
-	case 0x40:	// text and graphics, superimposed
-		text_or_graphics = !text_or_graphics;
-		show_text = text_or_graphics;	// toggles every vsync (60Hz)
-		show_graph = !text_or_graphics;
-//		show_text = true;
-//		show_graph = true;
-		break;
-	case 0xc0:	// graphics only
-		show_text = false;
-		show_graph = true;
-		break;
-	default:	// 0x80: no visible output
-		show_text = false;
-		show_graph = false;
-		break;
-	}
-
-	scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
-	for(int y = 0; y < SCREEN_HEIGHT; y++) {
-		scrntype_t* dest = emu->get_screen_buffer(y);
-		for(int x = 0; x < SCREEN_WIDTH; x++) {
-			dest[x] = back;
-		}
-	}
-	if(show_text) {
-		// text
+	if((screen_mode & 0xc0) == 0x00) {	// text only
 		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
 		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
 		int taddr = 0x100;
-		
+
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				if(mp1710_enb & 1) {
-					uint8_t color = color_table[taddr];
+					uint8_t color = color_table[taddr - 0x100];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
@@ -408,30 +385,63 @@ void MEMORY::draw_screen()
 				for(int l = 0; l < 8; l++) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8_t pat = font[code + l];
-					dest[0] |= (pat & 0x80) ? fore : back;
-					dest[1] |= (pat & 0x40) ? fore : back;
-					dest[2] |= (pat & 0x20) ? fore : back;
-					dest[3] |= (pat & 0x10) ? fore : back;
-					dest[4] |= (pat & 0x08) ? fore : back;
-					dest[5] |= (pat & 0x04) ? fore : back;
-					dest[6] |= (pat & 0x02) ? fore : back;
-					dest[7] |= (pat & 0x01) ? fore : back;
+					dest[0] = (pat & 0x80) ? fore : back;
+					dest[1] = (pat & 0x40) ? fore : back;
+					dest[2] = (pat & 0x20) ? fore : back;
+					dest[3] = (pat & 0x10) ? fore : back;
+					dest[4] = (pat & 0x08) ? fore : back;
+					dest[5] = (pat & 0x04) ? fore : back;
+					dest[6] = (pat & 0x02) ? fore : back;
+					dest[7] = (pat & 0x01) ? fore : back;
 				}
 				taddr++;
 			}
 		}
-	}
-	if(show_graph) {
-		// graph
+	} else if((screen_mode & 0xc0) == 0x40) {	// text & graphics,superimposed
+		uint8_t fore = screen_reversed ? 0 : 7;
+		uint8_t back = screen_reversed ? 7 : 0;
+		int taddr = 0x100;
+		int gaddr = 0x900 + ((screen_mode & 0x0f) << 9);
+
+		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
+			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
+				if(mp1710_enb & 1) {
+					uint8_t color = color_table[taddr - 0x100];
+					if(screen_reversed) {
+						color = (color >> 4) | (color << 4);
+					}
+					fore = (color     ) & 7;
+					back = (color >> 4) & 7;
+				}
+				int code = ram[taddr] << 3;
+				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
+					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
+					uint8_t tpat = font[code + l];
+					uint8_t gpat = ram[gaddr + ll];
+					dest[0] = superimpose_color[(tpat & 0x80) ? fore : back][(gpat & 0x80) ? fore : back];
+					dest[1] = superimpose_color[(tpat & 0x40) ? fore : back][(gpat & 0x40) ? fore : back];
+					dest[2] = superimpose_color[(tpat & 0x20) ? fore : back][(gpat & 0x20) ? fore : back];
+					dest[3] = superimpose_color[(tpat & 0x10) ? fore : back][(gpat & 0x10) ? fore : back];
+					dest[4] = superimpose_color[(tpat & 0x08) ? fore : back][(gpat & 0x08) ? fore : back];
+					dest[5] = superimpose_color[(tpat & 0x04) ? fore : back][(gpat & 0x04) ? fore : back];
+					dest[6] = superimpose_color[(tpat & 0x02) ? fore : back][(gpat & 0x02) ? fore : back];
+					dest[7] = superimpose_color[(tpat & 0x01) ? fore : back][(gpat & 0x01) ? fore : back];
+				}
+				taddr++;
+				gaddr++;
+			}
+			gaddr += 32 * 7;
+		}
+	} else if((screen_mode & 0xc0) == 0xc0) {	// graphics only
 		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
 		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
 		int taddr = 0x100;
 		int gaddr = 0x900 + ((screen_mode & 0x0f) << 9);
-		
+
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				if(mp1710_enb & 1) {
-					uint8_t color = color_table[taddr];
+					uint8_t color = color_table[taddr - 0x100];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
@@ -441,23 +451,29 @@ void MEMORY::draw_screen()
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8_t pat = ram[gaddr + ll];
-					dest[0] |= (pat & 0x80) ? fore : back;
-					dest[1] |= (pat & 0x40) ? fore : back;
-					dest[2] |= (pat & 0x20) ? fore : back;
-					dest[3] |= (pat & 0x10) ? fore : back;
-					dest[4] |= (pat & 0x08) ? fore : back;
-					dest[5] |= (pat & 0x04) ? fore : back;
-					dest[6] |= (pat & 0x02) ? fore : back;
-					dest[7] |= (pat & 0x01) ? fore : back;
+					dest[0] = (pat & 0x80) ? fore : back;
+					dest[1] = (pat & 0x40) ? fore : back;
+					dest[2] = (pat & 0x20) ? fore : back;
+					dest[3] = (pat & 0x10) ? fore : back;
+					dest[4] = (pat & 0x08) ? fore : back;
+					dest[5] = (pat & 0x04) ? fore : back;
+					dest[6] = (pat & 0x02) ? fore : back;
+					dest[7] = (pat & 0x01) ? fore : back;
 				}
 				taddr++;
 				gaddr++;
 			}
 			gaddr += 32 * 7;
 		}
-	} else { // $80: no visible output
+	} else {	// 0x80: no visible output
+		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
+		for(int y = 0; y < SCREEN_HEIGHT; y++) {
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			for(int x = 0; x < SCREEN_WIDTH; x++) {
+				dest[x] = back;
+			}
+		}
 	}
-//	emu->screen_skip_line(false);
 }
 
 #define STATE_VERSION	2
