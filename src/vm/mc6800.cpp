@@ -1710,7 +1710,7 @@ void MC6800::nop()
 
 /* $03 ILLEGAL */
 
-/* $04 LSRD inherent -0*-* */
+/* $04 LSRD inherent -0*** */
 void MC6800::lsrd()
 {
 	uint16_t t;
@@ -1720,7 +1720,7 @@ void MC6800::lsrd()
 	D=t;
 }
 
-/* $05 ASLD inherent ?**** */
+/* $05 ASLD inherent -**** */
 void MC6800::asld()
 {
 	int r;
@@ -2126,7 +2126,7 @@ void MC6800::swi()
 	PCD = RM16(0xfffa);
 }
 
-/* $40 NEGA inherent ?**** */
+/* $40 NEGA inherent -**** */
 void MC6800::nega()
 {
 	uint16_t r;
@@ -2146,7 +2146,7 @@ void MC6800::coma()
 	CLR_NZV; SET_NZ8(A); SEC;
 }
 
-/* $44 LSRA inherent -0*-* */
+/* $44 LSRA inherent -0*** */
 void MC6800::lsra()
 {
 	CLR_NZVC; CC|=(A&0x01);
@@ -2156,7 +2156,7 @@ void MC6800::lsra()
 
 /* $45 ILLEGAL */
 
-/* $46 RORA inherent -**-* */
+/* $46 RORA inherent -**** */
 void MC6800::rora()
 {
 	uint8_t r;
@@ -2167,7 +2167,7 @@ void MC6800::rora()
 	A=r;
 }
 
-/* $47 ASRA inherent ?**-* */
+/* $47 ASRA inherent -**** */
 void MC6800::asra()
 {
 	CLR_NZVC; CC|=(A&0x01);
@@ -2176,7 +2176,7 @@ void MC6800::asra()
 	if (NXORC) SEV;
 }
 
-/* $48 ASLA inherent ?**** */
+/* $48 ASLA inherent -**** */
 void MC6800::asla()
 {
 	uint16_t r;
@@ -2210,7 +2210,7 @@ void MC6800::inca()
 	CLR_NZV; SET_FLAGS8I(A);
 }
 
-/* $4d TSTA inherent -**0- */
+/* $4d TSTA inherent -**00 */
 void MC6800::tsta()
 {
 	CLR_NZVC; SET_NZ8(A);
@@ -2225,7 +2225,7 @@ void MC6800::clra()
 	CLR_NZVC; SEZ;
 }
 
-/* $50 NEGB inherent ?**** */
+/* $50 NEGB inherent -**** */
 void MC6800::negb()
 {
 	uint16_t r;
@@ -2245,7 +2245,7 @@ void MC6800::comb()
 	CLR_NZV; SET_NZ8(B); SEC;
 }
 
-/* $54 LSRB inherent -0*-* */
+/* $54 LSRB inherent -0*** */
 void MC6800::lsrb()
 {
 	CLR_NZVC; CC|=(B&0x01);
@@ -2255,7 +2255,7 @@ void MC6800::lsrb()
 
 /* $55 ILLEGAL */
 
-/* $56 RORB inherent -**-* */
+/* $56 RORB inherent -**** */
 void MC6800::rorb()
 {
 	uint8_t r;
@@ -2266,7 +2266,7 @@ void MC6800::rorb()
 	B=r;
 }
 
-/* $57 ASRB inherent ?**-* */
+/* $57 ASRB inherent -**** */
 void MC6800::asrb()
 {
 	CLR_NZVC; CC|=(B&0x01);
@@ -2275,7 +2275,7 @@ void MC6800::asrb()
 	if (NXORC) SEV;
 }
 
-/* $58 ASLB inherent ?**** */
+/* $58 ASLB inherent -**** */
 void MC6800::aslb()
 {
 	uint16_t r;
@@ -2309,7 +2309,7 @@ void MC6800::incb()
 	CLR_NZV; SET_FLAGS8I(B);
 }
 
-/* $5d TSTB inherent -**0- */
+/* $5d TSTB inherent -**00 */
 void MC6800::tstb()
 {
 	CLR_NZVC; SET_NZ8(B);
@@ -2324,7 +2324,7 @@ void MC6800::clrb()
 	CLR_NZVC; SEZ;
 }
 
-/* $60 NEG indexed ?**** */
+/* $60 NEG indexed -**** */
 void MC6800::neg_ix()
 {
 	uint16_t r,t;
@@ -2364,7 +2364,7 @@ void MC6800::com_ix()
 	WM(EAD,t);
 }
 
-/* $64 LSR indexed -0*-* */
+/* $64 LSR indexed -0*** */
 void MC6800::lsr_ix()
 {
 	uint8_t t;
@@ -2385,7 +2385,7 @@ void MC6800::eim_ix()
 	WM(EAD,r);
 }
 
-/* $66 ROR indexed -**-* */
+/* $66 ROR indexed -**** */
 void MC6800::ror_ix()
 {
 	uint8_t t,r;
@@ -2396,7 +2396,7 @@ void MC6800::ror_ix()
 	WM(EAD,r);
 }
 
-/* $67 ASR indexed ?**-* */
+/* $67 ASR indexed -**** */
 void MC6800::asr_ix()
 {
 	uint8_t t;
@@ -2407,7 +2407,7 @@ void MC6800::asr_ix()
 	WM(EAD,t);
 }
 
-/* $68 ASL indexed ?**** */
+/* $68 ASL indexed -**** */
 void MC6800::asl_ix()
 {
 	uint16_t t,r;
@@ -2453,7 +2453,7 @@ void MC6800::inc_ix()
 	WM(EAD,t);
 }
 
-/* $6d TST indexed -**0- */
+/* $6d TST indexed -**00 */
 void MC6800::tst_ix()
 {
 	uint8_t t;
@@ -2473,7 +2473,7 @@ void MC6800::clr_ix()
 	CLR_NZVC; SEZ;
 }
 
-/* $70 NEG extended ?**** */
+/* $70 NEG extended -**** */
 void MC6800::neg_ex()
 {
 	uint16_t r,t;
@@ -2545,7 +2545,7 @@ void MC6800::com_ex()
 	WM(EAD,t);
 }
 
-/* $74 LSR extended -0*-* */
+/* $74 LSR extended -0*** */
 void MC6800::lsr_ex()
 {
 	uint8_t t;
@@ -2585,7 +2585,7 @@ void MC6800::xim_ix()
 	WM(EAD, r);
 }
 
-/* $76 ROR extended -**-* */
+/* $76 ROR extended -**** */
 void MC6800::ror_ex()
 {
 	uint8_t t,r;
@@ -2596,7 +2596,7 @@ void MC6800::ror_ex()
 	WM(EAD,r);
 }
 
-/* $77 ASR extended ?**-* */
+/* $77 ASR extended -**** */
 void MC6800::asr_ex()
 {
 	uint8_t t;
@@ -2607,7 +2607,7 @@ void MC6800::asr_ex()
 	WM(EAD,t);
 }
 
-/* $78 ASL extended ?**** */
+/* $78 ASL extended -**** */
 void MC6800::asl_ex()
 {
 	uint16_t t,r;
@@ -2670,7 +2670,7 @@ void MC6800::inc_ex()
 	WM(EAD,t);
 }
 
-/* $7d TST extended -**0- */
+/* $7d TST extended -**00 */
 void MC6800::tst_ex()
 {
 	uint8_t t;
@@ -2690,7 +2690,7 @@ void MC6800::clr_ex()
 	CLR_NZVC; SEZ;
 }
 
-/* $80 SUBA immediate ?**** */
+/* $80 SUBA immediate -**** */
 void MC6800::suba_im()
 {
 	uint16_t    t,r;
@@ -2699,7 +2699,7 @@ void MC6800::suba_im()
 	A = r;
 }
 
-/* $81 CMPA immediate ?**** */
+/* $81 CMPA immediate -**** */
 void MC6800::cmpa_im()
 {
 	uint16_t    t,r;
@@ -2707,7 +2707,7 @@ void MC6800::cmpa_im()
 	CLR_NZVC; SET_FLAGS8(A,t,r);
 }
 
-/* $82 SBCA immediate ?**** */
+/* $82 SBCA immediate -**** */
 void MC6800::sbca_im()
 {
 	uint16_t    t,r;
@@ -2846,7 +2846,7 @@ void MC6800::sts_im()
 	WM16(EAD,&pS);
 }
 
-/* $90 SUBA direct ?**** */
+/* $90 SUBA direct -**** */
 void MC6800::suba_di()
 {
 	uint16_t    t,r;
@@ -2855,7 +2855,7 @@ void MC6800::suba_di()
 	A = r;
 }
 
-/* $91 CMPA direct ?**** */
+/* $91 CMPA direct -**** */
 void MC6800::cmpa_di()
 {
 	uint16_t    t,r;
@@ -2863,7 +2863,7 @@ void MC6800::cmpa_di()
 	CLR_NZVC; SET_FLAGS8(A,t,r);
 }
 
-/* $92 SBCA direct ?**** */
+/* $92 SBCA direct -**** */
 void MC6800::sbca_di()
 {
 	uint16_t    t,r;
@@ -3013,7 +3013,7 @@ void MC6800::sts_di()
 	WM16(EAD,&pS);
 }
 
-/* $a0 SUBA indexed ?**** */
+/* $a0 SUBA indexed -**** */
 void MC6800::suba_ix()
 {
 	uint16_t    t,r;
@@ -3024,7 +3024,7 @@ void MC6800::suba_ix()
 	A = r;
 }
 
-/* $a1 CMPA indexed ?**** */
+/* $a1 CMPA indexed -**** */
 void MC6800::cmpa_ix()
 {
 	uint16_t    t,r;
@@ -3034,7 +3034,7 @@ void MC6800::cmpa_ix()
 	SET_FLAGS8(A,t,r);
 }
 
-/* $a2 SBCA indexed ?**** */
+/* $a2 SBCA indexed -**** */
 void MC6800::sbca_ix()
 {
 	uint16_t    t,r;
@@ -3188,7 +3188,7 @@ void MC6800::sts_ix()
 	WM16(EAD,&pS);
 }
 
-/* $b0 SUBA extended ?**** */
+/* $b0 SUBA extended -**** */
 void MC6800::suba_ex()
 {
 	uint16_t    t,r;
@@ -3199,7 +3199,7 @@ void MC6800::suba_ex()
 	A = r;
 }
 
-/* $b1 CMPA extended ?**** */
+/* $b1 CMPA extended -**** */
 void MC6800::cmpa_ex()
 {
 	uint16_t    t,r;
@@ -3209,7 +3209,7 @@ void MC6800::cmpa_ex()
 	SET_FLAGS8(A,t,r);
 }
 
-/* $b2 SBCA extended ?**** */
+/* $b2 SBCA extended -**** */
 void MC6800::sbca_ex()
 {
 	uint16_t    t,r;
@@ -3365,7 +3365,7 @@ void MC6800::sts_ex()
 	WM16(EAD,&pS);
 }
 
-/* $c0 SUBB immediate ?**** */
+/* $c0 SUBB immediate -**** */
 void MC6800::subb_im()
 {
 	uint16_t    t,r;
@@ -3376,7 +3376,7 @@ void MC6800::subb_im()
 	B = r;
 }
 
-/* $c1 CMPB immediate ?**** */
+/* $c1 CMPB immediate -**** */
 void MC6800::cmpb_im()
 {
 	uint16_t    t,r;
@@ -3386,7 +3386,7 @@ void MC6800::cmpb_im()
 	SET_FLAGS8(B,t,r);
 }
 
-/* $c2 SBCB immediate ?**** */
+/* $c2 SBCB immediate -**** */
 void MC6800::sbcb_im()
 {
 	uint16_t    t,r;
@@ -3527,7 +3527,7 @@ void MC6800::stx_im()
 	WM16(EAD,&pX);
 }
 
-/* $d0 SUBB direct ?**** */
+/* $d0 SUBB direct -**** */
 void MC6800::subb_di()
 {
 	uint16_t    t,r;
@@ -3538,7 +3538,7 @@ void MC6800::subb_di()
 	B = r;
 }
 
-/* $d1 CMPB direct ?**** */
+/* $d1 CMPB direct -**** */
 void MC6800::cmpb_di()
 {
 	uint16_t    t,r;
@@ -3548,7 +3548,7 @@ void MC6800::cmpb_di()
 	SET_FLAGS8(B,t,r);
 }
 
-/* $d2 SBCB direct ?**** */
+/* $d2 SBCB direct -**** */
 void MC6800::sbcb_di()
 {
 	uint16_t    t,r;
@@ -3687,7 +3687,7 @@ void MC6800::stx_di()
 	WM16(EAD,&pX);
 }
 
-/* $e0 SUBB indexed ?**** */
+/* $e0 SUBB indexed -**** */
 void MC6800::subb_ix()
 {
 	uint16_t    t,r;
@@ -3698,7 +3698,7 @@ void MC6800::subb_ix()
 	B = r;
 }
 
-/* $e1 CMPB indexed ?**** */
+/* $e1 CMPB indexed -**** */
 void MC6800::cmpb_ix()
 {
 	uint16_t    t,r;
@@ -3708,7 +3708,7 @@ void MC6800::cmpb_ix()
 	SET_FLAGS8(B,t,r);
 }
 
-/* $e2 SBCB indexed ?**** */
+/* $e2 SBCB indexed -**** */
 void MC6800::sbcb_ix()
 {
 	uint16_t    t,r;
@@ -3859,7 +3859,7 @@ void MC6800::stx_ix()
 	WM16(EAD,&pX);
 }
 
-/* $f0 SUBB extended ?**** */
+/* $f0 SUBB extended -**** */
 void MC6800::subb_ex()
 {
 	uint16_t    t,r;
@@ -3870,7 +3870,7 @@ void MC6800::subb_ex()
 	B = r;
 }
 
-/* $f1 CMPB extended ?**** */
+/* $f1 CMPB extended -**** */
 void MC6800::cmpb_ex()
 {
 	uint16_t    t,r;
@@ -3880,7 +3880,7 @@ void MC6800::cmpb_ex()
 	SET_FLAGS8(B,t,r);
 }
 
-/* $f2 SBCB extended ?**** */
+/* $f2 SBCB extended -**** */
 void MC6800::sbcb_ex()
 {
 	uint16_t    t,r;
