@@ -12,18 +12,10 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v2
 
-      - name: Find the solution
-        shell: pwsh
-        run: |
-          Get-ChildItem -Path 'vc++2026' -Recurse -Include *.sln,*.vcxproj |
-            ForEach-Object { $_.FullName }
-
       - name: Build
         shell: pwsh
         run: |
-          $sln = Get-ChildItem -Path 'vc++2026' -Recurse -Filter *.sln |
-            Select-Object -First 1
-          msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /m
+          msbuild 'vc++2026\bmjr.vcxproj' /p:Configuration=Release /p:Platform=x64 /m
 
       - name: Collect the binaries
         shell: pwsh
@@ -32,6 +24,7 @@ jobs:
           Get-ChildItem -Recurse -Include *.exe |
             Where-Object { $_.FullName -notmatch '\\obj\\' } |
             Copy-Item -Destination out
+          Get-ChildItem out | ForEach-Object { $_.Name }
 
       - uses: actions/upload-artifact@v4
         with:
