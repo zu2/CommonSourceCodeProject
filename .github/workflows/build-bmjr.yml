@@ -7,6 +7,8 @@ jobs:
   build:
     runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -30,3 +32,15 @@ jobs:
         with:
           name: eBASICMasterJr
           path: out
+
+      - name: Make the tag name
+        id: tag
+        shell: pwsh
+        run: |
+          $d = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, 'Tokyo Standard Time').ToString('yyyyMMdd')
+          "name=$d" >> $env:GITHUB_OUTPUT
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          files: out/*.exe
