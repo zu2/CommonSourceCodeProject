@@ -394,7 +394,7 @@ void MEMORY::draw_screen()
 
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
-				if(mp1710_enb & 1) {
+				{
 					uint8_t color = color_table[taddr - 0x100];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
@@ -426,7 +426,7 @@ void MEMORY::draw_screen()
 
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
-				if(mp1710_enb & 1) {
+				{
 					uint8_t color = color_table[taddr - 0x100];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
@@ -461,7 +461,7 @@ void MEMORY::draw_screen()
 
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
-				if(mp1710_enb & 1) {
+				{
 					uint8_t color = color_table[taddr - 0x100];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
