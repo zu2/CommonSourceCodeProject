@@ -124,6 +124,7 @@ void MEMORY::reset()
 	
 	screen_mode = 0;
 	screen_reversed = false;
+	blink_count = 0;
 	
 	drec_bit = drec_in = false;
 	
@@ -193,7 +194,7 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		}
 		return;
 	}
-	if(addr >= 0x100 && addr < 0x400) {
+	if((mp1710_enb & 1) && addr >= 0x100 && addr < 0x400) {
 		color_table[addr - 0x100] = char_color;
 	}
 	wbank[(addr >> 11) & 0x1f][addr & 0x7ff] = data;
@@ -272,6 +273,8 @@ void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 
 void MEMORY::event_frame()
 {
+	blink_count++;
+
 	timer_irq_req = true;
 	update_irq_line();
 
@@ -366,6 +369,8 @@ void MEMORY::set_volume(int ch, int decibel_l, int decibel_r)
 
 void MEMORY::draw_screen()
 {
+	bool blink_state = ((blink_count & 0x20) != 0);
+
 	if((screen_mode & 0xc0) == 0x00) {	// text only
 		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
 		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
@@ -378,8 +383,8 @@ void MEMORY::draw_screen()
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
-					fore = palette_pc[(color     ) & 7];
-					back = palette_pc[(color >> 4) & 7];
+					fore = palette_pc[((color & 0x08) && !blink_state) ? 0 : (color     ) & 7];
+					back = palette_pc[((color & 0x80) && blink_state) ? 0 : (color >> 4) & 7];
 				}
 				int code = ram[taddr] << 3;
 				for(int l = 0; l < 8; l++) {
@@ -410,8 +415,8 @@ void MEMORY::draw_screen()
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
-					fore = (color     ) & 7;
-					back = (color >> 4) & 7;
+					fore = ((color & 0x08) && !blink_state) ? 0 : (color     ) & 7;
+					back = ((color & 0x80) && blink_state) ? 0 : (color >> 4) & 7;
 				}
 				int code = ram[taddr] << 3;
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
@@ -445,8 +450,8 @@ void MEMORY::draw_screen()
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
-					fore = palette_pc[(color     ) & 7];
-					back = palette_pc[(color >> 4) & 7];
+					fore = palette_pc[((color & 0x08) && !blink_state) ? 0 : (color     ) & 7];
+					back = palette_pc[((color & 0x80) && blink_state) ? 0 : (color >> 4) & 7];
 				}
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
