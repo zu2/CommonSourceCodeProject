@@ -26,6 +26,7 @@
 #define USE_TAPE		1
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
+#define USE_AUTO_KEY_NO_CAPS
 //#define USE_SCREEN_FILTER
 //#define USE_SCANLINE
 #define USE_SOUND_VOLUME	3
