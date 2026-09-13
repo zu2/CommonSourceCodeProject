@@ -239,12 +239,6 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		case 0xe802:
 		case 0xe803:
 			return d_pia->read_io8(addr);
-		case 0xe890:
-			return char_color;
-		case 0xe891:
-			return back_color;
-		case 0xe892:
-			return mp1710_enb;
 		}
 		return 0xff;
 	}
