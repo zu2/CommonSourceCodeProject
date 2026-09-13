@@ -33,14 +33,18 @@ jobs:
           name: eBASICMasterJr
           path: out
 
-      - name: Make the tag name
+      - name: Look for a tag named after today
         id: tag
         shell: pwsh
         run: |
           $d = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, 'Tokyo Standard Time').ToString('yyyyMMdd')
+          $found = (git ls-remote --tags origin "refs/tags/$d") -ne $null
           "name=$d" >> $env:GITHUB_OUTPUT
+          "found=$($found.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          Write-Host "tag $d found=$found"
 
       - uses: softprops/action-gh-release@v2
+        if: steps.tag.outputs.found == 'true'
         with:
           tag_name: ${{ steps.tag.outputs.name }}
           files: out/*.exe
