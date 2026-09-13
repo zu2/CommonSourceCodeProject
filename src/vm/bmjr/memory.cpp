@@ -129,6 +129,8 @@ void MEMORY::reset()
 	drec_bit = drec_in = false;
 	
 	key_column = 0;
+	kana_mode = false;
+	kana_pulse = 0;
 	nmi_enb = break_pressed = false;
 	
 	sound_sample = 0;
@@ -269,6 +271,10 @@ void MEMORY::event_frame()
 {
 	blink_count++;
 
+	if(kana_pulse != 0) {
+		kana_pulse--;
+	}
+
 	timer_irq_req = true;
 	update_irq_line();
 
@@ -297,6 +303,17 @@ void MEMORY::update_key_data()
 	if(key_stat[0xa1]) key_data &= ~0x40; // カナ記号 -> R-SHIFT
 	if(key_stat[0xa3]) key_data &= ~0x80; // カナ     -> R-CTRL
 #endif
+	if(kana_mode && key_stat[0xa0]) {
+		key_data |= 0x20;
+		key_data &= ~0x40;
+	}
+	if(kana_pulse != 0) {
+		if(kana_mode) {
+			key_data &= ~0x80;
+		} else {
+			key_data &= ~0x10;
+		}
+	}
 }
 
 void MEMORY::update_irq_line()
@@ -307,6 +324,11 @@ void MEMORY::update_irq_line()
 
 void MEMORY::key_down(int code)
 {
+	if(code == VK_KANA) {
+		kana_mode = !kana_mode;
+		kana_pulse = 8;
+		update_key_data();
+	}
 	// pause -> break
 	if(code == 0x13) {
 		if(nmi_enb) {

@@ -54,6 +54,8 @@ private:
 	uint32_t drec_clock;
 	
 	uint8_t key_column, key_data;
+	bool kana_mode;
+	int kana_pulse;
 	bool nmi_enb;
 	bool break_pressed;
 	
