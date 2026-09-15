@@ -7,4 +7,4 @@ The source code for other machines is unchanged.
 The original distribution and readme.txt are available here.
 
 Original distribution: https://takeda-toshiya.my.coocan.jp/common/index.html
-Original description: readme.txt
+Original description: [readme.txt](https://github.com/zu2/CommonSourceCodeProject/blob/main/readme.txt)
