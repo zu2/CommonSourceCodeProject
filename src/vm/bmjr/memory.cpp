@@ -131,7 +131,7 @@ void MEMORY::reset()
 	key_column = 0;
 	kana_mode = false;
 	kana_pulse = 0;
-	nmi_enb = break_pressed = false;
+	nmi_enb = break_pressed = break_pending = false;
 	
 	sound_sample = 0;
 	sound_accum = 0;
@@ -158,6 +158,13 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 		case 0xeec0:
 			key_column = data & 0x0f;
 			nmi_enb = ((data & 0x80) != 0);
+			if(break_pending && nmi_enb) {
+				break_pending = false;
+				if(key_stat[0x13]) {
+					d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
+					break_pressed = true;
+				}
+			}
 			update_key_data(); // update keyboard
 			break;
 		case 0xefd0:
@@ -331,6 +338,7 @@ void MEMORY::key_down(int code)
 	}
 	// pause -> break
 	if(code == 0x13) {
+		break_pending = !nmi_enb;
 		if(nmi_enb) {
 			d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
 		}
