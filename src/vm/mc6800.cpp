@@ -790,9 +790,10 @@ int MC6800::run(int clock)
 
 void MC6800::run_one_opecode()
 {
-	if(wai_state & (MC6800_WAI | HD6301_SLP)) {
+	const bool nmi_pending = (int_state & NMI_REQ_BIT) != 0;
+	if(!nmi_pending && (wai_state & (MC6800_WAI | HD6301_SLP))) {
 		increment_counter(1);
-	} else {
+	} else if(!nmi_pending) {
 		do {
 			one_more_insn = false;
 #ifdef USE_DEBUGGER
