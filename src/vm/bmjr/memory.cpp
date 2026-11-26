@@ -141,8 +141,8 @@ void MEMORY::reset()
 void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfe00) == 0xee00) {
-		// EE00h - EFFFh
-		switch(addr & 0xffff) {
+		// IC6 decodes A8-A6
+		switch(addr & 0xffc0) {
 		case 0xee40:
 			screen_reversed = ((data & 0x80) != 0);
 			break;
@@ -167,15 +167,20 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			}
 			update_key_data(); // update keyboard
 			break;
-		case 0xefd0:
-			// bit4: timer irq mask
-			memory_bank = data;
-			update_bank();
-			irq_enb = !(data & 0x10);
-			update_irq_line();
-			break;
-		case 0xefe0:
-			screen_mode = data;
+		case 0xefc0:
+			// IC13 decodes A4 and A5
+			// EFD0h-EFDFh and EFF0h-EFFFh.
+			if(addr & 0x10) {
+				memory_bank = data;
+				update_bank();
+				// Data bit 4 masks the timer IRQ.
+				irq_enb = !(data & 0x10);
+				update_irq_line();
+			}
+			// EFE0h-EFEFh and EFF0h-EFFFh.
+			if(addr & 0x20) {
+				screen_mode = data;
+			}
 			break;
 		}
 		return;
@@ -212,10 +217,9 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfe00) == 0xee00) {
-		// EE00h - EFFFh
-		switch(addr & 0xffff) {
+		// IC6 decodes A8-A6
+		switch(addr & 0xffc0) {
 		case 0xee00:
-		case 0xee20:
 			d_drec->write_signal(SIG_DATAREC_REMOTE, addr, 0x20);
 			return 0x01;
 		case 0xee80:
@@ -235,7 +239,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 				return 0x80;
 			}
 			return 0x00;
-		case 0xefd0:
+		case 0xefc0:
 			return memory_bank;
 		}
 		return 0xff;
