@@ -143,6 +143,9 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 	if((addr & 0xfe00) == 0xee00) {
 		// IC6 decodes A8-A6
 		switch(addr & 0xffc0) {
+		case 0xee00:
+			d_drec->write_signal(SIG_DATAREC_REMOTE, addr, 0x20);
+			break;
 		case 0xee40:
 			screen_reversed = ((data & 0x80) != 0);
 			break;
@@ -166,6 +169,9 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 				}
 			}
 			update_key_data(); // update keyboard
+			break;
+		case 0xef40:
+			// TODO: NMI
 			break;
 		case 0xefc0:
 			// IC13 decodes A4 and A5
@@ -221,7 +227,10 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		switch(addr & 0xffc0) {
 		case 0xee00:
 			d_drec->write_signal(SIG_DATAREC_REMOTE, addr, 0x20);
-			return 0x01;
+			return 0xff;
+		case 0xee40:
+			// TODO:
+			return 0xff;
 		case 0xee80:
 			return drec_bit ? 0x80 : 0;
 		case 0xeec0:
@@ -233,6 +242,9 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			update_irq_line();
 			return ret;
 		}
+		case 0xef40:
+			// TODO: NMI
+			return 0xff;
 		case 0xef80:
 			if(break_pressed) {
 				break_pressed = false;
