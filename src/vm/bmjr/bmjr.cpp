@@ -96,18 +96,18 @@ DEVICE* VM::get_device(int id)
 
 void VM::reset()
 {
-	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
+		if(device != cpu) {
+			device->reset();
+		}
 	}
+	// Read the reset vector after ROM is enabled.
+	cpu->reset();
 }
 
 void VM::special_reset()
 {
-	// reset all devices
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->reset();
-	}
+	reset();
 }
 
 void VM::run()
