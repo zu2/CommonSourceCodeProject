@@ -548,6 +548,8 @@ bool MEMORY::process_state(FILEIO* state_fio, bool loading)
 	// post process
 	if(loading) {
 		update_bank();
+		timer_irq_req = false;
+		update_irq_line();
 	}
 	return true;
 }
