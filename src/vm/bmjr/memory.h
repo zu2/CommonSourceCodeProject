@@ -37,7 +37,6 @@ private:
 	
 	uint8_t memory_bank;
 	void update_bank();
-	bool irq_enb;
 	bool timer_irq_req;
 	void update_irq_line();
 	void update_key_data();

@@ -114,7 +114,6 @@ void MEMORY::reset()
 	memory_bank = 0;
 	update_bank();
 
-	irq_enb = true;
 	timer_irq_req = false;
 	update_irq_line();
 	
@@ -176,9 +175,6 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			if(addr & 0x10) {
 				memory_bank = data;
 				update_bank();
-				// Data bit 4 masks the timer IRQ.
-				irq_enb = !(data & 0x10);
-				update_irq_line();
 			}
 			// EFE0h-EFEFh and EFF0h-EFFFh.
 			if(addr & 0x20) {
@@ -296,8 +292,11 @@ void MEMORY::event_frame()
 		kana_pulse--;
 	}
 
-	timer_irq_req = true;
-	update_irq_line();
+	// TIME OFF stops the timer pulse.
+	if(!(memory_bank & 0x10)) {
+		timer_irq_req = true;
+		update_irq_line();
+	}
 
 	update_key_data();
 }
@@ -339,7 +338,7 @@ void MEMORY::update_key_data()
 
 void MEMORY::update_irq_line()
 {
-    d_cpu->write_signal(SIG_CPU_IRQ, (timer_irq_req && irq_enb) ? 1 : 0, 1);
+    d_cpu->write_signal(SIG_CPU_IRQ, timer_irq_req ? 1 : 0, 1);
 }
 
 
