@@ -7,6 +7,8 @@
 	[ memory bus ]
 */
 
+#include <algorithm>
+
 #include "memory.h"
 #include "../datarec.h"
 
@@ -413,12 +415,12 @@ void MEMORY::draw_screen()
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				{
-					uint8_t color = color_table[taddr - 0x100];
-					if(screen_reversed) {
-						color = (color >> 4) | (color << 4);
-					}
+					const uint8_t color = color_table[taddr - 0x100];
 					fore = palette_pc[((color & 0x08) && !blink_state) ? 0 : (color     ) & 7];
 					back = palette_pc[((color & 0x80) && blink_state) ? 0 : (color >> 4) & 7];
+					if(screen_reversed) {
+						std::swap(fore, back);
+					}
 				}
 				int code = ram[taddr] << 3;
 				for(int l = 0; l < 8; l++) {
@@ -445,12 +447,12 @@ void MEMORY::draw_screen()
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				{
-					uint8_t color = color_table[taddr - 0x100];
-					if(screen_reversed) {
-						color = (color >> 4) | (color << 4);
-					}
+					const uint8_t color = color_table[taddr - 0x100];
 					fore = ((color & 0x08) && !blink_state) ? 0 : (color     ) & 7;
 					back = ((color & 0x80) && blink_state) ? 0 : (color >> 4) & 7;
+					if(screen_reversed) {
+						std::swap(fore, back);
+					}
 				}
 				int code = ram[taddr] << 3;
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
@@ -480,12 +482,12 @@ void MEMORY::draw_screen()
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				{
-					uint8_t color = color_table[taddr - 0x100];
-					if(screen_reversed) {
-						color = (color >> 4) | (color << 4);
-					}
+					const uint8_t color = color_table[taddr - 0x100];
 					fore = palette_pc[((color & 0x08) && !blink_state) ? 0 : (color     ) & 7];
 					back = palette_pc[((color & 0x80) && blink_state) ? 0 : (color >> 4) & 7];
+					if(screen_reversed) {
+						std::swap(fore, back);
+					}
 				}
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
 					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
