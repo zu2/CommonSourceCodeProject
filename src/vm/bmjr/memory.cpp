@@ -131,7 +131,7 @@ void MEMORY::reset()
 	key_column = 0;
 	kana_mode = false;
 	kana_pulse = 0;
-	nmi_enb = break_pressed = break_pending = false;
+	nmi_enb = break_pressed = false;
 	
 	sound_sample = 0;
 	sound_accum = 0;
@@ -160,14 +160,11 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 			break;
 		case 0xeec0:
 			key_column = data & 0x0f;
-			nmi_enb = ((data & 0x80) != 0);
-			if(break_pending && nmi_enb) {
-				break_pending = false;
-				if(key_stat[0x13]) {
-					d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
-					break_pressed = true;
-				}
+			if(!nmi_enb && (data & 0x80) && key_stat[0x13]) {
+				break_pressed = true;
+				d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
 			}
+			nmi_enb = ((data & 0x80) != 0);
 			update_key_data(); // update keyboard
 			break;
 		case 0xef40:
@@ -245,12 +242,13 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		case 0xef40:
 			// TODO: NMI
 			return 0xff;
-		case 0xef80:
-			if(break_pressed) {
+		case 0xef80: {
+			const uint32_t ret = break_pressed ? 0x80 : 0x00;
+			if(!nmi_enb || !key_stat[0x13]) {
 				break_pressed = false;
-				return 0x80;
 			}
-			return 0x00;
+			return ret;
+		}
 		case 0xefc0:
 			return memory_bank;
 		}
@@ -353,12 +351,9 @@ void MEMORY::key_down(int code)
 		update_key_data();
 	}
 	// pause -> break
-	if(code == 0x13) {
-		break_pending = !nmi_enb;
-		if(nmi_enb) {
-			d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
-		}
+	if(code == 0x13 && nmi_enb) {
 		break_pressed = true;
+		d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
 	}
 }
 

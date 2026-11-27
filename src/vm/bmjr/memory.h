@@ -58,7 +58,6 @@ private:
 	int kana_pulse;
 	bool nmi_enb;
 	bool break_pressed;
-	bool break_pending;
 	
 	uint8_t sound_sample;
 	double sound_accum;
