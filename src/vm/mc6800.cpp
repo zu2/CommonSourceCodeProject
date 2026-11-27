@@ -850,7 +850,6 @@ void MC6800::run_one_opecode()
 	} else if(int_state & INT_REQ_BIT) {
 		wai_state &= ~HD6301_SLP;
 		if(!(CC & 0x10)) {
-			int_state &= ~INT_REQ_BIT;
 			enter_interrupt(0xfff8);
 		}
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
