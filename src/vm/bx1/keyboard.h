@@ -19,12 +19,13 @@ class FIFO;
 class KEYBOARD : public DEVICE
 {
 private:
-	DEVICE* d_cpu;
+	outputs_t outputs_irq;
 	FIFO *fifo_down;
 	
 public:
 	KEYBOARD(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
+		initialize_output_signals(&outputs_irq);
 		set_device_name(_T("Keyboard"));
 	}
 	~KEYBOARD() {}
@@ -38,9 +39,9 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
-	void set_context_cpu(DEVICE* device)
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
-		d_cpu = device;
+		register_output_signal(&outputs_irq, device, id, mask);
 	}
 	void key_down(int code);
 	void key_up(int code);

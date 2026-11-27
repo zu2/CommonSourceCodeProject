@@ -29,6 +29,36 @@
 #include "keyboard.h"
 #include "printer.h"
 
+enum {
+	IRQ_FDC = 1,
+	IRQ_DMA = 2,
+	IRQ_KEYBOARD = 4
+};
+
+class BX1_IRQ : public DEVICE
+{
+private:
+	DEVICE* d_cpu;
+	uint32_t irq_bits;
+
+public:
+	BX1_IRQ(VM_TEMPLATE* parent_vm, EMU* parent_emu, DEVICE* cpu)
+		: DEVICE(parent_vm, parent_emu), d_cpu(cpu), irq_bits(0)
+	{
+		set_device_name(_T("IRQ"));
+	}
+
+	void write_signal(int id, uint32_t data, uint32_t mask)
+	{
+		if(data & mask) {
+			irq_bits |= id;
+		} else {
+			irq_bits &= ~id;
+		}
+		d_cpu->write_signal(SIG_CPU_IRQ, irq_bits != 0, 1);
+	}
+};
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -64,15 +94,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	event->set_context_sound(fdc->get_context_noise_head_up());
 	
 	fdc->set_context_drq(dma, SIG_MC6844_TX_RQ_0, 1);
-	fdc->set_context_irq(cpu, SIG_CPU_IRQ, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
 	dma->set_context_ch1(display);
-	dma->set_context_irq(cpu, SIG_CPU_IRQ, 1);
 	
 	display->set_context_dma(dma);
 	floppy->set_context_fdc(fdc);
-	keyboard->set_context_cpu(cpu);
 	printer->set_context_ram(ram);
 	
 	// cpu bus
@@ -122,6 +149,12 @@ VM::VM(EMU* parent_emu) : VM_TEMPLATE(parent_emu)
 	debugger->add_symbol(0xe18a, _T("FDD.MOTOR_ON")); // ???
 #endif
 	
+	// Keep device IDs in save states.
+	irq = new BX1_IRQ(this, emu, cpu);
+	fdc->set_context_irq(irq, IRQ_FDC, 1);
+	dma->set_context_irq(irq, IRQ_DMA, 1);
+	keyboard->set_context_irq(irq, IRQ_KEYBOARD, 1);
+
 	// memory bus
 	memset(ram, 0x00, sizeof(ram));
 	memset(cart_5000, 0xff, sizeof(cart_5000));
@@ -214,6 +247,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	irq->write_signal(IRQ_DMA, 0, 1);
 }
 
 void VM::run()
@@ -378,6 +412,9 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(device == irq) {
+			continue;
+		}
 #if defined(__GNUC__) || defined(__clang__) // @shikarunochi
 		int offset = ((int)strlen(typeid(*device).name()) > 10) ? 2 : 1;
 		const _TCHAR *name = char_to_tchar(typeid(*device).name() + offset); // skip length
@@ -397,6 +434,10 @@ bool VM::process_state(FILEIO* state_fio, bool loading)
 		}
 	}
 	state_fio->StateArray(ram, sizeof(ram), 1);
+	if(loading) {
+		fdc->status_update();
+		irq->write_signal(IRQ_DMA, dma->read_io8(0xe155), 0x80);
+	}
 	return true;
 }
 

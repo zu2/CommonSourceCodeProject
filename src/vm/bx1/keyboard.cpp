@@ -285,12 +285,13 @@ void KEYBOARD::release()
 void KEYBOARD::reset()
 {
 	fifo_down->clear();
+	write_signals(&outputs_irq, 0);
 }
 
 void KEYBOARD::event_vline(int v, int clock)
 {
 	if(!fifo_down->empty()) {
-		d_cpu->write_signal(SIG_CPU_IRQ, 1, 1);
+		write_signals(&outputs_irq, 0xffffffff);
 	}
 }
 
@@ -310,6 +311,9 @@ uint32_t KEYBOARD::read_io8(uint32_t addr)
 		// bit7: JPN/ENG Jumper?
 		// bit5: PROG.SELECT
 		fifo_down->read();
+		if(fifo_down->empty()) {
+			write_signals(&outputs_irq, 0);
+		}
 		value  = (config.dipswitch & 2) ? 0 : 0x20;
 		value |= (config.dipswitch & 4) ? 0 : 0x80;
 		break;
@@ -344,6 +348,9 @@ bool KEYBOARD::process_state(FILEIO* state_fio, bool loading)
 	}
 	if(!fifo_down->process_state((void *)state_fio, loading)) {
 		return false;
+	}
+	if(loading) {
+		write_signals(&outputs_irq, fifo_down->empty() ? 0 : 0xffffffff);
 	}
 	return true;
 }

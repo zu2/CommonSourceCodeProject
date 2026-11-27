@@ -100,7 +100,6 @@ private:
 	int m_seek_id;
 
 //	legacy_floppy_image_device* floppy_image();
-	void status_update();
 	void cmd_end();
 	void finish_STZ();
 	void finish_SEK();
@@ -155,6 +154,7 @@ public:
 	bool process_state(FILEIO* state_fio, bool loading);
 	
 	// unique functions
+	void status_update();
 	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);

@@ -217,6 +217,7 @@ protected:
 	FLOPPY* floppy;
 	KEYBOARD* keyboard;
 	PRINTER* printer;
+	DEVICE* irq;
 	
 	uint8_t cart_5000[0x1000]; // 5000h-5FFFh
 	uint8_t cart_6000[0x1000]; // 6000h-6FFFh
