@@ -40,6 +40,7 @@ private:
 	bool timer_irq_req;
 	void update_irq_line();
 	void update_key_data();
+	uint32_t read_data8(uint32_t addr, bool side_effects);
 	
 	uint8_t color_table[0x300];
 	uint8_t char_color, back_color, mp1710_enb;
@@ -77,6 +78,9 @@ public:
 	void reset();
 	void write_data8(uint32_t addr, uint32_t data);
 	uint32_t read_data8(uint32_t addr);
+#ifdef USE_DEBUGGER
+	uint32_t read_debug_data8(uint32_t addr);
+#endif
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void mix(int32_t* buffer, int cnt);

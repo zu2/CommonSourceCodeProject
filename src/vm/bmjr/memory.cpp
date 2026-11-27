@@ -217,11 +217,25 @@ void MEMORY::write_data8(uint32_t addr, uint32_t data)
 
 uint32_t MEMORY::read_data8(uint32_t addr)
 {
+	return read_data8(addr, true);
+}
+
+#ifdef USE_DEBUGGER
+uint32_t MEMORY::read_debug_data8(uint32_t addr)
+{
+	return read_data8(addr, false);
+}
+#endif
+
+uint32_t MEMORY::read_data8(uint32_t addr, bool side_effects)
+{
 	if((addr & 0xfe00) == 0xee00) {
 		// IC6 decodes A8-A6
 		switch(addr & 0xffc0) {
 		case 0xee00:
-			d_drec->write_signal(SIG_DATAREC_REMOTE, addr, 0x20);
+			if(side_effects) {
+				d_drec->write_signal(SIG_DATAREC_REMOTE, addr, 0x20);
+			}
 			return 0xff;
 		case 0xee40:
 			// TODO:
@@ -233,8 +247,10 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		case 0xef00: {
 			// bit7: irq reason: timer
 			uint32_t ret = 0x7f | (timer_irq_req ? 0x80:0x00);
-			timer_irq_req = false;
-			update_irq_line();
+			if(side_effects) {
+				timer_irq_req = false;
+				update_irq_line();
+			}
 			return ret;
 		}
 		case 0xef40:
@@ -242,7 +258,7 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 			return 0xff;
 		case 0xef80: {
 			const uint32_t ret = break_pressed ? 0x80 : 0x00;
-			if(!nmi_enb || !key_stat[0x13]) {
+			if(side_effects && (!nmi_enb || !key_stat[0x13])) {
 				break_pressed = false;
 			}
 			return ret;
@@ -259,6 +275,11 @@ uint32_t MEMORY::read_data8(uint32_t addr)
 		case 0xe801:
 		case 0xe802:
 		case 0xe803:
+#ifdef USE_DEBUGGER
+			if(!side_effects) {
+				return d_pia->read_debug_io8(addr);
+			}
+#endif
 			return d_pia->read_io8(addr);
 		}
 		return 0xff;

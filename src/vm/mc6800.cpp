@@ -888,6 +888,9 @@ void MC6800::write_debug_data8(uint32_t addr, uint32_t data)
 
 uint32_t MC6800::read_debug_data8(uint32_t addr)
 {
+	if(d_mem_debug != NULL) {
+		return d_mem_debug->read_debug_data8(addr);
+	}
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
@@ -1191,8 +1194,7 @@ int MC6800::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	uint8_t ops[4];
 	for(int i = 0; i < 4; i++) {
-		int wait;
-		ops[i] = d_mem_stored->read_data8w(pc + i, &wait);
+		ops[i] = read_debug_data8(pc + i);
 	}
 #if defined(HAS_MC6800)
 	return Dasm680x(6800, buffer, pc, ops, ops, d_debugger->first_symbol);

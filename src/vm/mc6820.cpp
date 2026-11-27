@@ -50,14 +50,28 @@ void MC6820::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t MC6820::read_io8(uint32_t addr)
 {
+	return read_io8(addr, true);
+}
+
+#ifdef USE_DEBUGGER
+uint32_t MC6820::read_debug_io8(uint32_t addr)
+{
+	return read_io8(addr, false);
+}
+#endif
+
+uint32_t MC6820::read_io8(uint32_t addr, bool side_effects)
+{
 	int ch = (addr & 2) >> 1;
 	
 	switch(addr & 3) {
 	case 0:
 	case 2:
 		if(port[ch].ctrl & 4) {
-			write_signals(&port[ch].outputs_irq, 0);
-			port[ch].ctrl &= ~0xc0;
+			if(side_effects) {
+				write_signals(&port[ch].outputs_irq, 0);
+				port[ch].ctrl &= ~0xc0;
+			}
 			return (port[ch].rreg & ~port[ch].ddr) | (port[ch].wreg & port[ch].ddr);
 		} else {
 			return port[ch].ddr;

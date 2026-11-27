@@ -38,6 +38,7 @@ private:
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 	DEVICE *d_mem_stored;
+	DEVICE *d_mem_debug;
 #endif
 	
 	pair32_t pc;
@@ -357,6 +358,7 @@ public:
 	MC6800(VM_TEMPLATE* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 #ifdef USE_DEBUGGER
+		d_mem_debug = NULL;
 		total_icount = prev_total_icount = 0;
 #endif
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
@@ -443,9 +445,10 @@ public:
 		d_mem = device;
 	}
 #ifdef USE_DEBUGGER
-	void set_context_debugger(DEBUGGER* device)
+	void set_context_debugger(DEBUGGER* device, DEVICE* memory = NULL)
 	{
 		d_debugger = device;
+		d_mem_debug = memory;
 	}
 #endif
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
