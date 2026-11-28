@@ -384,7 +384,7 @@ void MEMORY::update_bank()
 	if(memory_bank & 1) {
 		SET_BANK(0xb000, 0xdfff, ram + 0xb000, ram + 0xb000);
 	} else {
-		SET_BANK(0xb000, 0xdfff, wdmy, basic);
+		SET_BANK(0xb000, 0xdfff, ram + 0xb000, basic);
 	}
 	if(memory_bank & 2) {
 		SET_BANK(0xe000, 0xefff, ram + 0xe000, ram + 0xe000);
@@ -395,7 +395,7 @@ void MEMORY::update_bank()
 	if(memory_bank & 4) {
 		SET_BANK(0xf000, 0xffff, ram + 0xf000, ram + 0xf000);
 	} else {
-		SET_BANK(0xf000, 0xffff, wdmy, monitor);
+		SET_BANK(0xf000, 0xffff, ram + 0xf000, monitor);
 	}
 }
 
